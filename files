@@ -1,0 +1,109 @@
+// app/layout.tsx
+import type React from "react"
+import "./globals.css"
+import { Heebo } from 'next/font/google'
+import type { Metadata } from "next"
+import FloatingLogo from "@/components/floating-logo"
+
+const heebo = Heebo({
+  subsets: ["hebrew", "latin"],
+  variable: "--font-heebo",
+  weight: ["300", "400", "500", "700", "900"],
+  display: "swap",
+})
+
+export const metadata: Metadata = {
+  title: "תמר נופשים | חבילות נופש 5★ לקהל הדתי והחרדי",
+  description:
+    "תמר נופשים - חבילות נופש יוקרתיות בארץ ובחו״ל, כשרות מהודרת, שבתות וחגים, משפחות, זוגות וקבוצות. שירות אישי بدون פשרות.",
+  openGraph: {
+    title: "תמר נופשים | נופש כשר 5★",
+    description: "חבילות נופש יוקרתיות בארץ ובחו״ל לקהל הדתי והחרדי. כשרות, שבת, מעלית שבת, בריכה בהפרדה ועוד.",
+    locale: "he_IL",
+    type: "website",
+  },
+  alternates: { canonical: "/" },
+  generator: "v0.dev",
+}
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="he" dir="rtl">
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:FILL@0..1;wght@200..700;opsz@20..48"
+        />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+        {/* Font Awesome 6 (no integrity to prevent SRI mismatches across CDNs) */}
+        <link
+          rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+          crossOrigin="anonymous"
+          referrerPolicy="no-referrer"
+        />
+      </head>
+      <body className={`${heebo.variable} font-sans antialiased bg-white text-gray-900`}>
+        {children}
+        <FloatingLogo />
+      </body>
+    </html>
+  )
+}
+
+// components/whatsapp-float.tsx
+"use client"
+
+import Link from "next/link"
+import { useEffect, useRef, useState } from "react"
+import { MessageCircle } from 'lucide-react'
+
+export default function WhatsAppFloat({
+  phone = "972500000000",
+  message = "שלום, אשמח לפרטים על חבילה",
+}: {
+  phone?: string
+  message?: string
+}) {
+  const href = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
+  const iconRef = useRef<HTMLElement | null>(null)
+  const [faReady, setFaReady] = useState(true)
+
+  useEffect(() => {
+    const el = iconRef.current
+    if (!el) return
+    const check = () => {
+      try {
+        const fam = window.getComputedStyle(el).fontFamily || ""
+        setFaReady(/Font Awesome/i.test(fam))
+      } catch {
+        setFaReady(false)
+      }
+    }
+    check()
+    const t = setTimeout(check, 400)
+    window.addEventListener("load", check)
+    return () => {
+      clearTimeout(t)
+      window.removeEventListener("load", check)
+    }
+  }, [])
+
+  return (
+    <Link
+      href={href}
+      target="_blank"
+      aria-label="פתיחת שיחת וואטסאפ"
+      title="WhatsApp"
+      className="fixed bottom-4 left-4 z-50 inline-flex h-12 w-12 items-center justify-center rounded-full shadow-lg ring-1 ring-black/10 transition hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+      style={{ backgroundColor: "#25D366" }}
+    >
+      {faReady ? (
+        <i ref={iconRef} className="fa-brands fa-whatsapp text-white text-[22px] md:text-[24px]" aria-hidden />
+      ) : (
+        <MessageCircle className="h-6 w-6 text-white" aria-hidden />
+      )}
+      <span className="sr-only">WhatsApp</span>
+    </Link>
+  )
+}
